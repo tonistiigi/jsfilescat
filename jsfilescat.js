@@ -29,7 +29,14 @@ function cat(files, opt) {
   })
 
   var base64 = bundle.base64()
-  out.write('//# sourceMappingURL=data:application/json;base64,' + base64)
+  if (opt.mapout) {
+    var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
+    fs.writeFileSync(opt.mapout, base64, {encoding: 'base64'})
+    out.write('//# sourceMappingURL=' + mappath)
+  }
+  else {
+    out.write('//# sourceMappingURL=data:application/json;base64,' + base64)
+  }
   //console.log(JSON.parse(Buffer(base64, 'base64').toString()))
 }
 
