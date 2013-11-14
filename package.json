@@ -2,7 +2,10 @@
   "name": "jsfilescat",
   "version": "0.0.0",
   "description": "Concat and compress Javascript while preserving original sourcemaps.",
-  "main": "index.js",
+  "main": "jsfilescat.js",
+  "bin": {
+    "jsfilescat": "./jsfilescat.js"
+  },
   "dependencies": {
     "uglify-js": "~2.4.3",
     "combine-source-map": "~0.3.0",
