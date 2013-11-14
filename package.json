@@ -1,0 +1,14 @@
+{
+  "name": "jsfilescat",
+  "version": "0.0.0",
+  "description": "Concat and compress Javascript while preserving original sourcemaps.",
+  "main": "index.js",
+  "dependencies": {
+    "uglify-js": "~2.4.3",
+    "combine-source-map": "~0.3.0",
+    "optimist": "~0.6.0"
+  },
+  "devDependencies": {},
+  "author": "Tõnis Tiigi <tonistiigi@gmail.com>",
+  "license": "MIT"
+}
