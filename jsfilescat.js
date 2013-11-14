@@ -14,6 +14,7 @@ function cat(files, opt) {
     out = process.stdout
     name = argv.name || 'jsfilesbundle.js'
   }
+  var tmpsrc = ''
 
   var bundle = combine.create(name)
   var lines = 0
@@ -24,20 +25,51 @@ function cat(files, opt) {
       sourceFile: path.resolve(f)
     }, {line: lines})
     var src = combine.removeComments(source)
-    out.write((lines ? ';' : '') + src + '\n')
+    tmpsrc += (lines ? ';' : '') + src + '\n'
     lines += getLFCount(src) + 1
   })
 
   var base64 = bundle.base64()
-  if (opt.mapout) {
-    var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
-    fs.writeFileSync(opt.mapout, base64, {encoding: 'base64'})
-    out.write('//# sourceMappingURL=' + mappath)
+  if (opt['nouglify']) {
+    out.write(tmpsrc)
   }
   else {
-    out.write('//# sourceMappingURL=data:application/json;base64,' + base64)
+    var UglifyJS = require('uglify-js')
+    var toplevel = UglifyJS.parse(tmpsrc, {filename: name})
+    toplevel.figure_out_scope()
+    var compressed = toplevel.transform(UglifyJS.Compressor())
+    compressed.figure_out_scope()
+    compressed.compute_char_frequency()
+    compressed.mangle_names()
+    var mapjson = JSON.parse(Buffer(base64, 'base64').toString())
+    var sourcemap = UglifyJS.SourceMap({
+      file: name,
+      orig: mapjson
+    })
+    var stream = UglifyJS.OutputStream({source_map: sourcemap})
+    compressed.print(stream)
+    var code = stream.toString()
+    var map = JSON.parse(sourcemap.toString())
+    // UglifyJS map does not keep the sourcesContent
+    // Sources array gets sorted for some reason
+    map.sourcesContent = []
+    for (var i = 0; i < map.sources.length; i++) {
+      var index = mapjson.sources.indexOf(map.sources[i])
+      map.sourcesContent[i] = mapjson.sourcesContent[index]
+    }
+    out.write(code + '\n')
+    base64 = Buffer(JSON.stringify(map)).toString('base64')
   }
-  //console.log(JSON.parse(Buffer(base64, 'base64').toString()))
+  if (!opt['nomap']) {
+    if (opt.mapout) {
+      var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
+      fs.writeFileSync(opt.mapout, base64, {encoding: 'base64'})
+      out.write('//# sourceMappingURL=' + mappath)
+    }
+    else {
+      out.write('//# sourceMappingURL=data:application/json;base64,' + base64)
+    }
+  }
 }
 
 function getLFCount(str) {
