@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 var fs = require('fs')
-var asyncMap = require('slide').asyncMap
 var combine = require('combine-source-map')
-var assert = require('assert')
 var path = require('path')
 
 function cat(files, opt) {
