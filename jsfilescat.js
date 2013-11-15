@@ -5,7 +5,7 @@ var path = require('path')
 
 function cat(files, opt) {
   if (opt.out) {
-    var out = fs.createWriteStream(opt.out)
+    var out = typeof opt.out === 'string' ? fs.createWriteStream(opt.out) : opt.out
     var name = opt.name || path.basename(opt.out)
   }
   else {
@@ -60,14 +60,22 @@ function cat(files, opt) {
   }
   if (!opt['nomap']) {
     if (opt.mapout) {
-      var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
-      fs.writeFileSync(opt.mapout, base64, {encoding: 'base64'})
+      if (typeof opt.mapout === 'string') {
+        var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
+        opt.mapout = fs.createWriteStream(opt.mapout)
+      }
+      else {
+        mappath = opt.mapname || name + '.json'
+      }
+      opt.mapout.write(Buffer(base64, 'base64'))
+      opt.mapout.end()
       out.write(sourceMapComment(mappath, opt.css))
     }
     else {
       out.write(sourceMapComment('data:application/json;base64,' + base64, opt.css))
     }
   }
+  out.end()
 }
 
 function sourceMapComment(data, isCSS) {
