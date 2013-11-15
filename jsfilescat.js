@@ -23,12 +23,12 @@ function cat(files, opt) {
       sourceFile: path.resolve(f)
     }, {line: lines})
     var src = combine.removeComments(source)
-    tmpsrc += (lines ? ';' : '') + src + '\n'
+    tmpsrc += (lines && !opt.css ? ';' : '') + src + '\n'
     lines += getLFCount(src) + 1
   })
 
   var base64 = bundle.base64()
-  if (opt['nouglify']) {
+  if (opt['nouglify'] || opt.css) {
     out.write(tmpsrc)
   }
   else {
@@ -62,12 +62,19 @@ function cat(files, opt) {
     if (opt.mapout) {
       var mappath = path.relative(opt.out ? path.dirname(opt.out) : process.cwd(), opt.mapout)
       fs.writeFileSync(opt.mapout, base64, {encoding: 'base64'})
-      out.write('//# sourceMappingURL=' + mappath)
+      out.write(sourceMapComment(mappath, opt.css))
     }
     else {
-      out.write('//# sourceMappingURL=data:application/json;base64,' + base64)
+      out.write(sourceMapComment('data:application/json;base64,' + base64, opt.css))
     }
   }
+}
+
+function sourceMapComment(data, isCSS) {
+  var out = isCSS ? '/*' : '//'
+  out += '# sourceMappingURL=' + data
+  if (isCSS) out += ' */'
+  return out
 }
 
 function getLFCount(str) {

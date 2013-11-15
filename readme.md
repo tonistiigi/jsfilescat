@@ -9,3 +9,4 @@ Options:
 - `nouglify` - Skip compression.
 - `nomap` - Skip source map generation.
 - `name` - Output filename(used in sourcemap).
+- `css` - Concat CSS files instead(no compression).
