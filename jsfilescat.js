@@ -35,7 +35,9 @@ function cat(files, opt) {
     var UglifyJS = require('uglify-js')
     var toplevel = UglifyJS.parse(tmpsrc, {filename: name})
     toplevel.figure_out_scope()
-    var compressed = toplevel.transform(UglifyJS.Compressor())
+    var compressed = toplevel.transform(UglifyJS.Compressor({
+      warnings: opt.warnings === undefined ? true : opt.warnings
+    }))
     compressed.figure_out_scope()
     compressed.compute_char_frequency()
     compressed.mangle_names()
